@@ -58,6 +58,7 @@ def get_article_tags(conn,pk):
     FROM Z_12TAGS t, 
     ZENATTRIBUTEDENTITY e 
     WHERE  e.z_ent = 17 and t.z_17tags = e.z_pk
+    AND zdeleted is null
     and t.z_12notes = ?
     """,(pk,))
     tags = []
@@ -71,7 +72,7 @@ def read_url(path):
       raise Exception("Evernote database file does not exist at: %s" % path)
     conn = sqlite3.connect(path)
     c = conn.cursor()
-    c.execute("SELECT Z_PK,ZTITLE, ZSOURCEURL,ZCREATED  FROM Zenattributedentity where Z_ENT=12 and ZSOURCEURL IS NOT NULL")
+    c.execute("SELECT Z_PK,ZTITLE, ZSOURCEURL,ZCREATED  FROM Zenattributedentity where Z_ENT=12 and ZSOURCEURL IS NOT NULL AND zdeleted is null")
     data = []
 
     # From: https://github.com/kjk/web-blog/blob/master/scripts/evernote-to-file.py
