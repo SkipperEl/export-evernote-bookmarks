@@ -41,6 +41,7 @@ import codecs
 import sqlite3
 import codecs
 import getopt
+import datetime
 from optparse import OptionParser
 from xml.etree.ElementTree import Element,ElementTree,SubElement
 
@@ -70,19 +71,28 @@ def read_url(path):
       raise Exception("Evernote database file does not exist at: %s" % path)
     conn = sqlite3.connect(path)
     c = conn.cursor()
-    c.execute("SELECT Z_PK,ZTITLE, ZSOURCEURL  FROM Zenattributedentity where Z_ENT=12 and ZSOURCEURL IS NOT NULL")
+    c.execute("SELECT Z_PK,ZTITLE, ZSOURCEURL,ZCREATED  FROM Zenattributedentity where Z_ENT=12 and ZSOURCEURL IS NOT NULL")
     data = []
-    for pk,title,url in c:
+
+    # From: https://github.com/kjk/web-blog/blob/master/scripts/evernote-to-file.py
+    # ZCREATED timestamp is in weird format that looks like 31 years after
+    # unix timestamp. so this is a crude way to approximate this. Might be off
+    # by a day or so
+    td = datetime.timedelta(days=31*365+8)
+        
+    for pk,title,url,dt in c:
       tags = get_article_tags(conn,pk)
-      data.append((title,url,tags))
+      created_on = datetime.datetime.fromtimestamp(dt)+td
+#      print "%s - %s" % (title,created_on)
+      data.append((title,url,tags,created_on))
     conn.close()
     return data
 
 def write_bookmarks(data,fname):
   dl = Element("DL")
-  for title,url,tags in data:
+  for title,url,tags,created in data:
     dt = SubElement(dl,"DT")
-    a = SubElement(dt,"A",attrib=dict(HREF=url,TAGS=",".join(tags)))
+    a = SubElement(dt,"A",attrib=dict(HREF=url,TAGS=",".join(tags),ADD_DATE=created.strftime('%s')))
     a.text = title
     dt.tail = "\n"
   file = open(fname,"w")
