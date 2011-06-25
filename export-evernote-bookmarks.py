@@ -85,11 +85,11 @@ def write_bookmarks(data,fname):
     a = SubElement(dt,"A",attrib=dict(HREF=url,TAGS=",".join(tags)))
     a.text = title
     dt.tail = "\n"
-  file = codecs.open(fname,"w","UTF-8")
+  file = open(fname,"w")
   file.write("""<!DOCTYPE NETSCAPE-Bookmark-file-1>\n""")
   file.write("""<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n""")
   file.write("""<TITLE>Evernote Bookmarks</TITLE>\n""")
-  ElementTree(dl).write(file)
+  ElementTree(dl).write(file,encoding="UTF-8")
 
 if __name__ == "__main__":
     parser = OptionParser()
